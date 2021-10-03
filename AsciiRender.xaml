@@ -1,0 +1,166 @@
+﻿<Window x:Class="AsciiConverter.AsciiRender"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AsciiConverter"
+        mc:Ignorable="d"
+        Title="ASCII converter" Height="350" Width="525" d:DataContext="{d:DesignInstance }">
+
+    <Window.Resources>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Style.Setters>
+                <Setter Property="Background" Value="#383838"></Setter>
+                <Setter Property="BorderBrush" Value="#383838"></Setter>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                                    BorderBrush="{TemplateBinding BorderBrush}">
+                                <ContentPresenter HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"></ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#525252"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        
+        <Style x:Key="MenuItemStyle" TargetType="{x:Type MenuItem}">
+            <Style.Setters>
+                <Setter Property="Background" Value="#383838"/>
+                <Setter Property="Foreground" Value="#C0C0C6"/>
+                <Setter Property="Width" Value="auto"/>
+                <Setter Property="Height" Value="auto"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Padding" Value="3"></Setter>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="{x:Type MenuItem}">
+                            <Border x:Name="MenuItemBorder" Width="auto" Height="auto" 
+                                    BorderBrush="{TemplateBinding BorderBrush}" 
+                                    BorderThickness="{TemplateBinding BorderThickness}" 
+                                    Background="{TemplateBinding Background}">
+                                <Grid VerticalAlignment="Center">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition MinWidth="5" SharedSizeGroup="MenuItemIconColumnGroup" Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition MinWidth="5"></ColumnDefinition>
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Grid.Column="0"></ContentPresenter>
+                                    <ContentPresenter Grid.Column="1" Content="{TemplateBinding Header}" 
+                                                      ContentSource="Header" Margin="{TemplateBinding Padding}" 
+                                                      SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                    <Popup Grid.Column="2" AllowsTransparency="True" 
+                                           IsOpen="{Binding IsSubmenuOpen, 
+                                           RelativeSource={RelativeSource TemplatedParent}}" 
+                                           Placement="Bottom" PlacementTarget="{Binding 
+                                           ElementName=MenuItemBorder}"
+                                           HorizontalOffset="1" VerticalOffset="-1">
+                                        <Border BorderBrush="#2C2C2C" Background="#383838" BorderThickness="2">
+                                            <ScrollViewer Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, 
+                                                TypeInTargetAssembly={x:Type FrameworkElement}}}">
+                                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                                            </ScrollViewer>
+                                        </Border>
+                                    </Popup>
+                                </Grid>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsHighlighted" Value="True">
+                                    <Setter Property="Background" Value="#525252"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style.Setters>
+        </Style>
+        
+        <Style x:Key="FooterLabelStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="#C0C0C6"></Setter>
+            <Setter Property="FontSize" Value="14"></Setter>
+            <Setter Property="Background" Value="#383838"></Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#383838">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="1"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="1"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Menu Grid.Row="0" Background="#383838" FontSize="14" Foreground="#C0C0C6">
+            <MenuItem Style="{StaticResource MenuItemStyle}" Header="File">
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Open" Command="{Binding ChoseImage}"></MenuItem>
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Save" Command="{Binding Save}"></MenuItem>
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Save as" Command="{Binding SaveAs}"></MenuItem>
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Exit" Command="{Binding Exit}"></MenuItem>
+            </MenuItem>
+            <MenuItem Style="{StaticResource MenuItemStyle}" Header="Settings">
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Font" Command="{Binding ChangeFontSettings}"></MenuItem>
+                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Ascii" Command="{Binding AsciiSettings}"></MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" x:Name="FilePathLabel" Content="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}" 
+                   FontSize="14" Foreground="#C0C0C6" Margin="5 0 0 0"></Label>
+            <Button Grid.Column="1" Width="20" Height="20" Style="{StaticResource ButtonStyle}" 
+                    Command="{Binding CreateImage}" Margin="0 0 5 0">
+                <Image Width="14" Source="Resources/free-icon-play-660570.png"></Image>
+            </Button>
+        </Grid>
+        <Canvas Grid.Row="2" Background="#2C2C2C" Height="1"></Canvas>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="10"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0" Source="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}"/>
+            <GridSplitter Grid.Column="1" Background="#2C2C2C" Width="1"
+                          HorizontalAlignment="Center" VerticalAlignment="Stretch"></GridSplitter>
+            <Canvas Grid.Column="2" x:Name="AsciiSize"></Canvas>
+            <Border Grid.Column="2"
+                    Height="{Binding ActualHeight, ElementName=AsciiSize, Mode=OneWay}"
+                    Width="{Binding ActualWidth, ElementName=AsciiSize, Mode=OneWay}">
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                    <TextBlock Foreground="#D7D7D7" FontSize="{Binding FontSettingsModel.FontSize, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
+                               Text="{Binding AsciiText, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+        <Canvas Grid.Row="4" Background="#2C2C2C" Height="1"></Canvas>
+        <Grid Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" Style="{StaticResource FooterLabelStyle}"
+                   Content="{Binding ImageSize, UpdateSourceTrigger=PropertyChanged}"></Label>
+            <Label Grid.Column="1" Style="{StaticResource FooterLabelStyle}"></Label>
+            <Label Grid.Column="2" Style="{StaticResource FooterLabelStyle}"
+                   Content="{Binding AsciiSize, UpdateSourceTrigger=PropertyChanged}"></Label>
+            <Label Grid.Column="3" Style="{StaticResource FooterLabelStyle}"
+                   Content="{Binding FontSize, UpdateSourceTrigger=PropertyChanged}"></Label>
+            <Label Grid.Column="4" Style="{StaticResource FooterLabelStyle}"
+                   Content="{Binding WidthOffset, UpdateSourceTrigger=PropertyChanged}"></Label>
+        </Grid>
+    </Grid>
+</Window>
