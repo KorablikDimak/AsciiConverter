@@ -8,4 +8,4 @@ The application allows you to fine-tune the accuracy and size of the resulting "
 No launch conditions are required. Just download the app and run it. Do not forget to save the resulting Ascii art and send it to your friend.
 ---
 ## Download app
-You can download a working apk for android by the link [LovelyApp](https://disk.yandex.ru/d/P7ZqiEuge64CnQ)
+You can download a working apk for PC by the link [LovelyApp](https://disk.yandex.ru/d/P7ZqiEuge64CnQ)
