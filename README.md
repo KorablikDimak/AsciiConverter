@@ -10,4 +10,4 @@ No launch conditions are required. Just download the app and run it. Do not forg
 
 ---
 ## Download app
-You can download a working application for PC by the link [AsciiConverter](https://disk.yandex.ru/d/DgsHOKZ87HGdZw)
+You can download a working application for PC by the link [AsciiConverter](https://disk.yandex.ru/d/oMKRRUUYlVBBvg)
