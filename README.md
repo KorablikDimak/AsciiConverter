@@ -1,6 +1,7 @@
 # AsciiConverter
 ## Description
 Desktop application for translating raster images in Ascii graphics.
+
 ![AsceeScreen](https://github.com/KorablikDimak/AsciiConverter/raw/master/AsciiScreen.png)
 ## Settings
 The application allows you to fine-tune the accuracy and size of the resulting "image". making it clearer if favored by increasing the number of characters and decreasing their font size. In the application, you can choose to invert the image so that it is displayed correctly on both light and dark backgrounds.
