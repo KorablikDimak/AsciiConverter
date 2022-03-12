@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using AsciiConverter.Models;
 using Microsoft.Win32;
@@ -12,6 +13,17 @@ namespace AsciiConverter.ViewModels
 {
     public class AsciiRenderModel : INotifyPropertyChanged
     {
+        private string _fileName;
+        public string FileName
+        {
+            get => _fileName ?? "";
+            set
+            {
+                _fileName = value;
+                OnPropertyChanged("FileName");
+            }
+        }
+        
         private string _filePath;
         public string FilePath
         {
@@ -124,10 +136,10 @@ namespace AsciiConverter.ViewModels
         public Command ChangeFontSettings => _changeFontSettings ?? (_changeFontSettings = new Command(OpenFontSettingsWindow));
 
         private Command _save;
-        public Command Save => _save ?? (_save = new Command(SaveAscii));
+        public Command Save => _save ?? (_save = new Command(SaveAsciiAsync));
 
         private Command _saveAs;
-        public Command SaveAs => _saveAs ?? (_saveAs = new Command(SaveAsAscii));
+        public Command SaveAs => _saveAs ?? (_saveAs = new Command(SaveAsAsciiAsync));
 
         private Command _exit;
         public Command Exit => _exit ?? (_exit = new Command(ExitApp));
@@ -147,6 +159,7 @@ namespace AsciiConverter.ViewModels
             bool? isChosen = fileDialog.ShowDialog();
             if (isChosen != true) return;
             FilePath = fileDialog.FileName;
+            FileName = fileDialog.SafeFileName;
             OpenBitmap();
         }
 
@@ -185,32 +198,48 @@ namespace AsciiConverter.ViewModels
 
         private void OpenFontSettingsWindow(object o)
         {
-            FontSettings fontSettings = new FontSettings(FontSettingsModel);
+            var fontSettings = new FontSettings(FontSettingsModel);
             if (fontSettings.ShowDialog() == true) FontSettingsModel = fontSettings.FontSettingsModel;
         }
 
         private void OpenAsciiSettingsWindow(object o)
         {
-            AsciiSettings asciiSettings = new AsciiSettings(AsciiSettingsModel);
+            var asciiSettings = new AsciiSettings(AsciiSettingsModel);
             if (asciiSettings.ShowDialog() == true) AsciiSettingsModel = asciiSettings.AsciiSettingsModel;
         }
 
-        private  void SaveAscii(object o)
+        private async void SaveAsciiAsync(object o)
         {
-            SaveText("myAscii.txt");
+            await SaveTextAsync($"{FileName}.txt");
         }
 
-        private void SaveAsAscii(object o)
+        private async void SaveAsAsciiAsync(object o)
         {
             if (AsciiText == null) return;
-            var fileDialog = new SaveFileDialog {Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*"};
+            var fileDialog = new SaveFileDialog {Filter = "txt file (*.txt)|*.txt|image file (*.png)|*.png"};
             bool? isChosen = fileDialog.ShowDialog();
             if (isChosen != true) return;
             string filePath = fileDialog.FileName;
-            SaveText(filePath);
+
+            if (fileDialog.FilterIndex < 2)
+            {
+                await SaveTextAsync(filePath);
+            }
+
+            SaveImageAsync(filePath);
         }
 
-        private void SaveText(string path)
+        private void SaveImageAsync(string path)
+        {
+            CreateAscii createAscii;
+            if (FontSettingsModel.InvertInSavedFile == true) createAscii = _bitmapConverter.CreateInvertAscii;
+            else createAscii = _bitmapConverter.CreateAscii;
+
+            Bitmap bitmap = _bitmapConverter.ConvertToBimap(createAscii.Invoke());
+            bitmap.Save(path);
+        }
+
+        private async Task SaveTextAsync(string path)
         {
             CreateAscii createAscii;
             if (FontSettingsModel.InvertInSavedFile == true) createAscii = _bitmapConverter.CreateInvertAscii;
@@ -222,7 +251,7 @@ namespace AsciiConverter.ViewModels
             {
                 using (var streamWriter = new StreamWriter(path, false, System.Text.Encoding.UTF8))
                 {
-                    streamWriter.Write(text);
+                    await streamWriter.WriteAsync(text);
                 }
             }
             catch (Exception e)

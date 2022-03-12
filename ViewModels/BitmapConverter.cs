@@ -130,5 +130,200 @@ namespace AsciiConverter.ViewModels
                 }
             }
         }
+
+        private const int CharToPixelSize = 5;
+        
+        public Bitmap ConvertToBimap(char[][] ascii)
+        {
+            if (ascii == null) return new Bitmap(0, 0);
+            var bitmap = new Bitmap(ascii[0].Length * CharToPixelSize, ascii.Length * CharToPixelSize);
+
+            Color color = Color.White;
+            
+            for (int i = 0; i < ascii.Length; i++)
+            {
+                for (int j = 0; j < ascii[i].Length; j++)
+                {
+                    int[,] pixels = FromAsciiToPixels(ascii[i][j]);
+
+                    for (int k = 0; k < CharToPixelSize; k++)
+                    {
+                        for (int l = 0; l < CharToPixelSize; l++)
+                        {
+                            switch (pixels[k, l])
+                            {
+                                case 0:
+                                    color = Color.White;
+                                    break;
+                                case 1:
+                                    color = Color.Gray;
+                                    break;
+                                case 2:
+                                    color = Color.Black;
+                                    break;
+                            }
+                            
+                            bitmap.SetPixel(j * CharToPixelSize + k, i * CharToPixelSize + l, color);
+                        }
+                    }
+                }
+            }
+            
+            return bitmap;
+        }
+
+        private int[,] FromAsciiToPixels(char symbol)
+        {
+            var pixels = new int[CharToPixelSize, CharToPixelSize];
+            for (int i = 0; i < pixels.GetLength(0); i++)
+            {
+                for (int j = 0; j < pixels.GetLength(1); j++)
+                {
+                    pixels[i, j] = 0;
+                }
+            }
+            
+            switch (symbol)
+            {
+                case '.':
+                    pixels[2, 3] = 2;
+                    break;
+                case ',':
+                    pixels[2, 3] = 2;
+                    pixels[2, 4] = 1;
+                    pixels[1, 4] = 2;
+                    break;
+                case '_':
+                    pixels[1, 3] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[3, 3] = 2;
+                    break;
+                case ':':
+                    pixels[2, 1] = 2;
+                    pixels[2, 3] = 2;
+                    break;
+                case ';':
+                    pixels[2, 1] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[2, 4] = 1;
+                    pixels[1, 4] = 2;
+                    break;
+                case '-':
+                    pixels[1, 2] = 2;
+                    pixels[2, 2] = 2;
+                    pixels[3, 2] = 2;
+                    break;
+                case '+':
+                    pixels[2, 0] = 1;
+                    pixels[2, 1] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[2, 4] = 1;
+                    pixels[0, 2] = 1;
+                    pixels[1, 2] = 2;
+                    pixels[2, 2] = 2;
+                    pixels[3, 2] = 2;
+                    pixels[4, 2] = 1;
+                    break;
+                case '*':
+                    pixels[0, 0] = 2;
+                    pixels[1, 1] = 2;
+                    pixels[2, 2] = 2;
+                    pixels[3, 3] = 2;
+                    pixels[4, 4] = 2;
+                    pixels[2, 0] = 2;
+                    pixels[2, 1] = 2;
+                    pixels[0, 4] = 2;
+                    pixels[1, 3] = 2;
+                    pixels[3, 1] = 2;
+                    pixels[4, 0] = 2;
+                    break;
+                case '#':
+                    pixels[1, 0] = 2;
+                    pixels[1, 1] = 2;
+                    pixels[1, 2] = 2;
+                    pixels[1, 3] = 2;
+                    pixels[1, 4] = 2;
+                    pixels[3, 0] = 2;
+                    pixels[3, 1] = 2;
+                    pixels[3, 2] = 2;
+                    pixels[3, 4] = 2;
+                    pixels[0, 1] = 2;
+                    pixels[2, 1] = 2;
+                    pixels[4, 1] = 2;
+                    pixels[0, 3] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[4, 3] = 2;
+                    break;
+                case '%':
+                    pixels[0, 4] = 2;
+                    pixels[1, 3] = 2;
+                    pixels[2, 2] = 2;
+                    pixels[3, 1] = 2;
+                    pixels[4, 0] = 2;
+                    pixels[1, 0] = 2;
+                    pixels[2, 1] = 2;
+                    pixels[1, 2] = 2;
+                    pixels[0, 1] = 2;
+                    pixels[0, 0] = 1;
+                    pixels[2, 0] = 1;
+                    pixels[0, 2] = 1;
+                    pixels[3, 2] = 2;
+                    pixels[4, 3] = 2;
+                    pixels[3, 4] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[4, 2] = 1;
+                    pixels[4, 4] = 1;
+                    pixels[2, 4] = 1;
+                    break;
+                case '&':
+                    pixels[4, 1] = 2;
+                    pixels[3, 0] = 2;
+                    pixels[2, 1] = 2;
+                    pixels[2, 0] = 1;
+                    pixels[1, 1] = 1;
+                    pixels[1, 2] = 1;
+                    pixels[2, 2] = 2;
+                    pixels[3, 3] = 2;
+                    pixels[4, 4] = 2;
+                    pixels[2, 4] = 2;
+                    pixels[1, 4] = 2;
+                    pixels[1, 3] = 2;
+                    break;
+                case '$':
+                    pixels[3, 1] = 2;
+                    pixels[3, 0] = 1;
+                    pixels[2, 0] = 2;
+                    pixels[1, 0] = 1;
+                    pixels[1, 1] = 2;
+                    pixels[2, 1] = 2;
+                    pixels[2, 2] = 2;
+                    pixels[2, 3] = 2;
+                    pixels[2, 4] = 2;
+                    pixels[1, 4] = 2;
+                    pixels[3, 4] = 2;
+                    pixels[3, 3] = 1;
+                    break;
+                case '@':
+                    pixels[1, 1] = 2;
+                    pixels[1, 2] = 2;
+                    pixels[1, 3] = 1;
+                    pixels[2, 3] = 2;
+                    pixels[3, 3] = 1;
+                    pixels[4, 2] = 2;
+                    pixels[4, 1] = 1;
+                    pixels[3, 0] = 1;
+                    pixels[2, 0] = 2;
+                    pixels[1, 0] = 2;
+                    pixels[0, 1] = 2;
+                    pixels[0, 2] = 2;
+                    pixels[0, 3] = 2;
+                    pixels[0, 4] = 1;
+                    pixels[1, 4] = 2;
+                    pixels[2, 4] = 1;
+                    break;
+            }
+
+            return pixels;
+        }
     }
 }
