@@ -108,6 +108,9 @@ namespace AsciiConverter.ViewModels
                 _asciiSettingsModel = value;
                 WidthOffset = value.WidthOffset.ToString(CultureInfo.InvariantCulture);
                 OnPropertyChanged("AsciiSettingsModel");
+                if (_bitmapConverter == null) return;
+                OpenBitmap();
+                RenderAscii(null);
             }
         }
 
@@ -144,6 +147,11 @@ namespace AsciiConverter.ViewModels
             bool? isChosen = fileDialog.ShowDialog();
             if (isChosen != true) return;
             FilePath = fileDialog.FileName;
+            OpenBitmap();
+        }
+
+        private void OpenBitmap()
+        {
             var bitmap = new Bitmap(FilePath);
             _bitmapConverter = new BitmapConverter(bitmap)
             {

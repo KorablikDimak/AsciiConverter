@@ -51,7 +51,7 @@ namespace AsciiConverter
 
         private void Cancel(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            DialogResult = false;
         }
 
         private void Accept(object sender, RoutedEventArgs e)
