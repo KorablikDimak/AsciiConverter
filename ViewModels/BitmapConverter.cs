@@ -1,4 +1,7 @@
+using System;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 
 namespace AsciiConverter.ViewModels
 {
@@ -13,6 +16,8 @@ namespace AsciiConverter.ViewModels
                 if (value < 0.1f) _widthOffset = 0.1f;
                 else if (value > 10) _widthOffset = 10;
                 else _widthOffset = value;
+
+                ScaleBitmap();
             }
         }
 
@@ -56,7 +61,6 @@ namespace AsciiConverter.ViewModels
                 ConvertToAscii(_symbols);
                 return _ascii;
             }
-            ScaleBitmap();
             ConvertBitmapToMonochrome();
             CreateAsciiIndexes();
             ConvertToAscii(_symbols);
@@ -70,10 +74,9 @@ namespace AsciiConverter.ViewModels
                 ConvertToAscii(_invertSymbols);
                 return _ascii;
             }
-            ScaleBitmap();
             ConvertBitmapToMonochrome();
-            CreateAsciiIndexes();
-            ConvertToAscii(_invertSymbols);
+            CreateAsciiIndexes(); 
+            ConvertToAscii(_invertSymbols); 
             return _ascii;
         }
         
@@ -88,29 +91,52 @@ namespace AsciiConverter.ViewModels
         
         private void ConvertBitmapToMonochrome()
         {
-            for (int y = 0; y < Bitmap.Height; y++)
+            var rectangle = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
+            var bitmapData = Bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            IntPtr ptr = bitmapData.Scan0;
+            
+            int bytes = Math.Abs(bitmapData.Stride) * bitmapData.Height;
+            byte[] rgbValues = new byte[bytes];
+            Marshal.Copy(ptr, rgbValues, 0, bytes);
+
+            for (int counter = 0; counter < rgbValues.Length; counter += 4)
             {
-                for (int x = 0; x < Bitmap.Width; x++)
-                {
-                    Color pixel = Bitmap.GetPixel(x, y);
-                    int rjbSize = (pixel.R + pixel.G + pixel.B) / 3;
-                    Bitmap.SetPixel(x, y, Color.FromArgb(pixel.A, rjbSize, rjbSize, rjbSize));
-                }
+                byte rjbSize = (byte) ((rgbValues[counter] + rgbValues[counter + 1] + rgbValues[counter + 2]) / 3);
+                rgbValues[counter] = rjbSize;
+                rgbValues[counter + 1] = rjbSize;
+                rgbValues[counter + 2] = rjbSize;
             }
+            
+            Marshal.Copy(rgbValues, 0, ptr, bytes);
+            Bitmap.UnlockBits(bitmapData);
         }
 
         private void CreateAsciiIndexes()
         {
+            var rectangle = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
+            var bitmapData = Bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+            IntPtr ptr = bitmapData.Scan0;
+            
+            int bytes = Math.Abs(bitmapData.Stride) * bitmapData.Height;
+            byte[] rgbValues = new byte[bytes];
+            Marshal.Copy(ptr, rgbValues, 0, bytes);
+
             _asciiIndexes = new int[Bitmap.Height][];
-            for (int y = 0; y < Bitmap.Height; y++)
+            _asciiIndexes[0] = new int[Bitmap.Width];
+            for (int counter = 0, x = 0, y = 0; counter < rgbValues.Length; counter += 4, x++)
             {
-                _asciiIndexes[y] = new int[Bitmap.Width];
-                for (int x = 0; x < Bitmap.Width; x++)
+                if (x == Bitmap.Width)
                 {
-                    _asciiIndexes[y][x] = 
-                        MapArrays(Bitmap.GetPixel(x, y).R, 0, 255, 0, _symbols.Length - 1);
+                    x = 0;
+                    y++;
+                    _asciiIndexes[y] = new int[Bitmap.Width];
                 }
+                _asciiIndexes[y][x] = 
+                    MapArrays(rgbValues[counter], 0, 255, 0, _symbols.Length - 1);
             }
+            
+            Marshal.Copy(rgbValues, 0, ptr, bytes);
+            Bitmap.UnlockBits(bitmapData);
         }
 
         private static int MapArrays(int valueToMap, int minValue1, int maxValue1, int minValue2, int maxValue2)

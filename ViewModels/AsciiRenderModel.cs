@@ -210,6 +210,7 @@ namespace AsciiConverter.ViewModels
 
         private async void SaveAsciiAsync(object o)
         {
+            if (FileName == null) return;
             await SaveTextAsync($"{FileName}.txt");
         }
 

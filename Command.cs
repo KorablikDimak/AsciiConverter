@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace AsciiConverter.ViewModels
+namespace AsciiConverter
 {
     public class Command : ICommand
     {
