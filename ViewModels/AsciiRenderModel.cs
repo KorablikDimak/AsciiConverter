@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using AsciiConverter.Models;
 using Microsoft.Win32;
+using OpenCvSharp;
 
 namespace AsciiConverter.ViewModels
 {
@@ -20,7 +22,7 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _fileName = value;
-                OnPropertyChanged("FileName");
+                OnPropertyChanged();
             }
         }
         
@@ -31,7 +33,7 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _filePath = value;
-                OnPropertyChanged("FilePath");
+                OnPropertyChanged();
             }
         }
 
@@ -42,7 +44,7 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _asciiText = value;
-                OnPropertyChanged("AsciiText");
+                OnPropertyChanged();
             }
         }
 
@@ -53,7 +55,7 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _imageSize = value;
-                OnPropertyChanged("ImageSize");
+                OnPropertyChanged();
             }
         }
 
@@ -64,11 +66,11 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _fontSize = $"Font size: {value}";
-                OnPropertyChanged("FontSize");
+                OnPropertyChanged();
             } 
         }
 
-        private FontSettingsModel _fontSettingsModel = new FontSettingsModel
+        private FontSettingsModel _fontSettingsModel = new()
         {
             FontSize = 5,
             InvertInRedactor = true,
@@ -81,7 +83,7 @@ namespace AsciiConverter.ViewModels
             {
                 FontSize = value.FontSize.ToString();
                 _fontSettingsModel = value;
-                OnPropertyChanged("FontSettingsModel");
+                OnPropertyChanged();
             }
         }
 
@@ -92,7 +94,7 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _widthOffset = $"Width offset: {value}";
-                OnPropertyChanged("WidthOffset");
+                OnPropertyChanged();
             } 
         }
         
@@ -103,11 +105,11 @@ namespace AsciiConverter.ViewModels
             set
             {
                 _asciiSize = value;
-                OnPropertyChanged("AsciiSize");
+                OnPropertyChanged();
             } 
         }
 
-        private AsciiSettingsModel _asciiSettingsModel = new AsciiSettingsModel
+        private AsciiSettingsModel _asciiSettingsModel = new()
         {
             AsciiSize = 250,
             WidthOffset = 2
@@ -119,7 +121,7 @@ namespace AsciiConverter.ViewModels
             {
                 _asciiSettingsModel = value;
                 WidthOffset = value.WidthOffset.ToString(CultureInfo.InvariantCulture);
-                OnPropertyChanged("AsciiSettingsModel");
+                OnPropertyChanged();
                 if (_bitmapConverter == null) return;
                 OpenBitmap();
                 RenderAscii(null);
@@ -127,25 +129,25 @@ namespace AsciiConverter.ViewModels
         }
 
         private Command _choseImage;
-        public Command ChoseImage => _choseImage ?? (_choseImage = new Command(OpenFileDialog));
+        public Command ChoseImage => _choseImage ??= new Command(OpenFileDialog);
 
         private Command _createImage;
-        public Command CreateImage => _createImage ?? (_createImage = new Command(RenderAscii));
+        public Command CreateImage => _createImage ??= new Command(RenderAscii);
 
         private Command _changeFontSettings;
-        public Command ChangeFontSettings => _changeFontSettings ?? (_changeFontSettings = new Command(OpenFontSettingsWindow));
+        public Command ChangeFontSettings => _changeFontSettings ??= new Command(OpenFontSettingsWindow);
 
         private Command _save;
-        public Command Save => _save ?? (_save = new Command(SaveAsciiAsync));
+        public Command Save => _save ??= new Command(SaveAsciiAsync);
 
         private Command _saveAs;
-        public Command SaveAs => _saveAs ?? (_saveAs = new Command(SaveAsAsciiAsync));
+        public Command SaveAs => _saveAs ??= new Command(SaveAsAsciiAsync);
 
         private Command _exit;
-        public Command Exit => _exit ?? (_exit = new Command(ExitApp));
+        public Command Exit => _exit ??= new Command(ExitApp);
 
         private Command _asciiSettings;
-        public Command AsciiSettings => _asciiSettings ?? (_asciiSettings = new Command(OpenAsciiSettingsWindow));
+        public Command AsciiSettings => _asciiSettings ??= new Command(OpenAsciiSettingsWindow);
 
         private BitmapConverter _bitmapConverter;
         private delegate char[][] CreateAscii();
@@ -154,13 +156,40 @@ namespace AsciiConverter.ViewModels
         {
             var fileDialog = new OpenFileDialog
             {
-                Filter = "Images | *.bmp; *.png; *.jpg; *.jpeg"
+                Filter = "Images | *.bmp; *.png; *.jpg; *.jpeg; | Video | *.mp4; *.avi"
             };
             bool? isChosen = fileDialog.ShowDialog();
             if (isChosen != true) return;
             FilePath = fileDialog.FileName;
             FileName = fileDialog.SafeFileName;
-            OpenBitmap();
+            OpenVideo();
+        }
+
+        private void OpenVideo()
+        {
+            var capture = new VideoCapture(FilePath);
+            var image = new Mat();
+
+            while (capture.IsOpened())
+            {
+                capture.Read(image);
+                if (image.Empty())
+                {
+                    break;
+                }
+
+                var bitmap = new Bitmap(image.Width, image.Height, PixelFormat.Format32bppArgb);
+                var rectangle = new Rectangle(0, 0, image.Width, image.Height);
+                var bitmapData = bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+                bitmapData.Scan0 = image.Data;
+                bitmap.UnlockBits(bitmapData);
+                
+                if (_bitmapConverter == null) return;
+                CreateAscii createAscii;
+                if (FontSettingsModel.InvertInRedactor == true) createAscii = _bitmapConverter.CreateInvertAscii;
+                else createAscii = _bitmapConverter.CreateAscii;
+                AsciiText = CreateAsciiString(createAscii);
+            }
         }
 
         private void OpenBitmap()
@@ -250,10 +279,8 @@ namespace AsciiConverter.ViewModels
             if (text == null) return;
             try
             {
-                using (var streamWriter = new StreamWriter(path, false, System.Text.Encoding.UTF8))
-                {
-                    await streamWriter.WriteAsync(text);
-                }
+                using var streamWriter = new StreamWriter(path, false, System.Text.Encoding.UTF8);
+                await streamWriter.WriteAsync(text);
             }
             catch (Exception e)
             {

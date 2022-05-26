@@ -164,31 +164,27 @@ namespace AsciiConverter.ViewModels
             if (ascii == null) return new Bitmap(0, 0);
             var bitmap = new Bitmap(ascii[0].Length * CharToPixelSize, ascii.Length * CharToPixelSize);
 
-            Color color = Color.White;
+            var color = Color.White;
             
             for (int i = 0; i < ascii.Length; i++)
             {
                 for (int j = 0; j < ascii[i].Length; j++)
                 {
+                    // one char to CharToPixelSize pixels
                     int[,] pixels = FromAsciiToPixels(ascii[i][j]);
 
                     for (int k = 0; k < CharToPixelSize; k++)
                     {
                         for (int l = 0; l < CharToPixelSize; l++)
                         {
-                            switch (pixels[k, l])
+                            color = pixels[k, l] switch
                             {
-                                case 0:
-                                    color = Color.White;
-                                    break;
-                                case 1:
-                                    color = Color.Gray;
-                                    break;
-                                case 2:
-                                    color = Color.Black;
-                                    break;
-                            }
-                            
+                                0 => Color.White,
+                                1 => Color.Gray,
+                                2 => Color.Black,
+                                _ => color
+                            };
+                            // can be optimized
                             bitmap.SetPixel(j * CharToPixelSize + k, i * CharToPixelSize + l, color);
                         }
                     }
