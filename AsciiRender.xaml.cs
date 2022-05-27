@@ -1,13 +1,12 @@
 ﻿using AsciiConverter.ViewModels;
 
-namespace AsciiConverter
+namespace AsciiConverter;
+
+public partial class AsciiRender
 {
-    public partial class AsciiRender
+    public AsciiRender()
     {
-        public AsciiRender()
-        {
-            InitializeComponent();
-            DataContext = new AsciiRenderModel();
-        }
+        InitializeComponent();
+        DataContext = new AsciiRenderModel();
     }
 }

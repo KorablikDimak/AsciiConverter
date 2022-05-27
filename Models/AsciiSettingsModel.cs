@@ -1,8 +1,7 @@
-namespace AsciiConverter.Models
+namespace AsciiConverter.Models;
+
+public class AsciiSettingsModel
 {
-    public class AsciiSettingsModel
-    {
-        public float WidthOffset { get; set; }
-        public int AsciiSize { get; set; }
-    }
+    public float WidthOffset { get; set; }
+    public int AsciiSize { get; set; }
 }

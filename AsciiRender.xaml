@@ -115,31 +115,26 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
+                <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" x:Name="FilePathLabel" Content="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}" 
                    FontSize="14" Foreground="#C0C0C6" Margin="5 0 0 0"></Label>
-            <Button Grid.Column="1" Width="20" Height="20" Style="{StaticResource ButtonStyle}" 
-                    Command="{Binding CreateImage}" Margin="0 0 5 0">
-                <Image Width="14" Source="Resources/free-icon-play-660570.png"></Image>
+            <Button Grid.Column="1" Width="34" Height="34" Style="{StaticResource ButtonStyle}" Margin="0 0 10 0"
+                    Command="{Binding StopPlay}">
+                <Image Width="24" Source="Resources/free-icon-pause-4646120.png"></Image>
+            </Button>
+            <Button Grid.Column="2" Width="34" Height="34" Style="{StaticResource ButtonStyle}" Margin="0 0 10 0"
+                    Command="{Binding ContinuePlay}">
+                <Image Width="24" Source="Resources/free-icon-play-4646117.png"></Image>
             </Button>
         </Grid>
         <Canvas Grid.Row="2" Background="#2C2C2C" Height="1"></Canvas>
         <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-                <ColumnDefinition Width="10"></ColumnDefinition>
-                <ColumnDefinition Width="*"></ColumnDefinition>
-            </Grid.ColumnDefinitions>
-            <Image Grid.Column="0" Source="{Binding FilePath, UpdateSourceTrigger=PropertyChanged}"/>
-            <GridSplitter Grid.Column="1" Background="#2C2C2C" Width="1"
-                          HorizontalAlignment="Center" VerticalAlignment="Stretch"></GridSplitter>
-            <Canvas Grid.Column="2" x:Name="AsciiSize"></Canvas>
-            <Border Grid.Column="2"
-                    Height="{Binding ActualHeight, ElementName=AsciiSize, Mode=OneWay}"
+            <Border Height="{Binding ActualHeight, ElementName=AsciiSize, Mode=OneWay}"
                     Width="{Binding ActualWidth, ElementName=AsciiSize, Mode=OneWay}">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
                     <TextBlock Foreground="#D7D7D7" FontSize="{Binding FontSettingsModel.FontSize, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas"
-                               Text="{Binding AsciiText, UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+                               Text="{Binding AsciiText, UpdateSourceTrigger=PropertyChanged}" TextAlignment="Center"></TextBlock>
                 </ScrollViewer>
             </Border>
         </Grid>
