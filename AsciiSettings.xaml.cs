@@ -27,9 +27,9 @@ public partial class AsciiSettings : Window
         {
             asciiSize = 1;
         }
-        else if (asciiSize > 999)
+        else if (asciiSize > 500)
         {
-            asciiSize = 999;
+            asciiSize = 500;
         }
         success  = float.TryParse(WidthOffset.Text, out float widthOffset);
         if (!success)

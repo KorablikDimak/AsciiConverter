@@ -18,7 +18,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private string _fileName;
     public string FileName
     {
-        get => _fileName ?? "";
+        get => _fileName;
         set
         {
             _fileName = value;
@@ -29,7 +29,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private string _filePath;
     public string FilePath
     {
-        get => _filePath ?? "";
+        get => _filePath;
         set
         {
             _filePath = value;
@@ -51,7 +51,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private string _imageSize;
     public string ImageSize
     {
-        get => _imageSize ?? "";
+        get => _imageSize;
         set
         {
             _imageSize = value;
@@ -101,7 +101,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private string _asciiSize;
     public string AsciiSize
     {
-        get => _asciiSize ?? "";
+        get => _asciiSize;
         set
         {
             _asciiSize = value;
@@ -166,7 +166,9 @@ public class AsciiRenderModel : INotifyPropertyChanged
         
         _cancellationTokenSource.Cancel();
         await Task.Delay(1000);
+        _isVideoPlaying = false;
         _cancellationTokenSource.Dispose();
+        
         _cancellationTokenSource = new CancellationTokenSource();
         CancellationToken token = _cancellationTokenSource.Token;
         
@@ -203,10 +205,13 @@ public class AsciiRenderModel : INotifyPropertyChanged
             // ignored
         }
     }
+    
+    private bool _isVideoPlaying = false;
 
     private async void OpenVideo(CancellationToken token)
     {
         var capture = new VideoCapture(FilePath);
+        _isVideoPlaying = true;
         var image = new Mat();
         int frameTime = 1000 / (int ) capture.Fps; // in milliseconds (for example 33ms when original fps is 30)
         ImageSize = $"{capture.FrameHeight}px x {capture.FrameWidth}px";
@@ -267,10 +272,10 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private void OpenBitmap()
     { 
         _bitmapConverter.Bitmap = new Bitmap(FilePath);
+        ImageSize = $"{_bitmapConverter.Bitmap.Height}px x {_bitmapConverter.Bitmap.Width}px";
         _bitmapConverter.MaxWidth = AsciiSettingsModel.AsciiSize;
         _bitmapConverter.WidthOffset = AsciiSettingsModel.WidthOffset;
-        ImageSize = $"{_bitmapConverter.Bitmap.Height}px x {_bitmapConverter.Bitmap.Width}px";
-        
+
         if (FontSettingsModel.InvertInRedactor == true) CreateAsciiString(_bitmapConverter.CreateInvertAscii);
         else CreateAsciiString(_bitmapConverter.CreateAscii);
     }
@@ -290,13 +295,21 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private void OpenFontSettingsWindow(object o)
     {
         var fontSettings = new FontSettings(FontSettingsModel);
-        if (fontSettings.ShowDialog() == true) FontSettingsModel = fontSettings.FontSettingsModel;
+        if (fontSettings.ShowDialog() == true)
+        {
+            FontSettingsModel = fontSettings.FontSettingsModel;
+            if (!_isVideoPlaying) Task.Run(OpenBitmap);
+        }
     }
 
     private void OpenAsciiSettingsWindow(object o)
     {
         var asciiSettings = new AsciiSettings(AsciiSettingsModel);
-        if (asciiSettings.ShowDialog() == true) AsciiSettingsModel = asciiSettings.AsciiSettingsModel;
+        if (asciiSettings.ShowDialog() == true)
+        {
+            AsciiSettingsModel = asciiSettings.AsciiSettingsModel;
+            if (!_isVideoPlaying) Task.Run(OpenBitmap);
+        }
     }
 
     private async void SaveAsciiAsync(object o)
