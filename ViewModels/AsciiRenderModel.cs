@@ -1,7 +1,6 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -15,6 +14,9 @@ namespace AsciiConverter.ViewModels;
 
 public class AsciiRenderModel : INotifyPropertyChanged
 {
+    private const byte WidthOffset = 2;
+    private const byte WidthOffsetOutput = 1;
+    
     private string _fileName;
     public string FileName
     {
@@ -72,6 +74,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
 
     private FontSettingsModel _fontSettingsModel = new()
     {
+        AsciiSize = 250,
         FontSize = 5,
         InvertInRedactor = true,
         InvertInSavedFile = false
@@ -86,17 +89,6 @@ public class AsciiRenderModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-
-    private string _widthOffset;
-    public string WidthOffset
-    {
-        get => _widthOffset ?? "Width offset: 2";
-        set
-        {
-            _widthOffset = $"Width offset: {value}";
-            OnPropertyChanged();
-        } 
-    }
         
     private string _asciiSize;
     public string AsciiSize
@@ -107,22 +99,6 @@ public class AsciiRenderModel : INotifyPropertyChanged
             _asciiSize = value;
             OnPropertyChanged();
         } 
-    }
-
-    private AsciiSettingsModel _asciiSettingsModel = new()
-    {
-        AsciiSize = 250,
-        WidthOffset = 2
-    };
-    public AsciiSettingsModel AsciiSettingsModel
-    {
-        get => _asciiSettingsModel;
-        set
-        {
-            _asciiSettingsModel = value;
-            WidthOffset = value.WidthOffset.ToString(CultureInfo.InvariantCulture);
-            OnPropertyChanged();
-        }
     }
 
     private Command _choseImage;
@@ -139,9 +115,6 @@ public class AsciiRenderModel : INotifyPropertyChanged
 
     private Command _exit;
     public Command Exit => _exit ??= new Command(ExitApp);
-
-    private Command _asciiSettings;
-    public Command AsciiSettings => _asciiSettings ??= new Command(OpenAsciiSettingsWindow);
 
     private Command _stopPlay;
     public Command StopPlay => _stopPlay ??= new Command(StopVideo);
@@ -235,9 +208,9 @@ public class AsciiRenderModel : INotifyPropertyChanged
             if (!capture.Read(image)) return;
 
             _bitmapConverter.Bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(image);
-            if (AsciiSettingsModel.AsciiSize > 360) AsciiSettingsModel.AsciiSize = 360;
-            _bitmapConverter.MaxWidth = AsciiSettingsModel.AsciiSize;
-            _bitmapConverter.WidthOffset = AsciiSettingsModel.WidthOffset;
+            if (FontSettingsModel.AsciiSize > 360) FontSettingsModel.AsciiSize = 360;
+            _bitmapConverter.MaxWidth = FontSettingsModel.AsciiSize;
+            _bitmapConverter.WidthOffset = WidthOffset;
 
             if (FontSettingsModel.InvertInRedactor == true)
                 SetAsciiText(_bitmapConverter.CreateInvertAscii);
@@ -273,8 +246,8 @@ public class AsciiRenderModel : INotifyPropertyChanged
     { 
         _bitmapConverter.Bitmap = new Bitmap(FilePath);
         ImageSize = $"{_bitmapConverter.Bitmap.Height}px x {_bitmapConverter.Bitmap.Width}px";
-        _bitmapConverter.MaxWidth = AsciiSettingsModel.AsciiSize;
-        _bitmapConverter.WidthOffset = AsciiSettingsModel.WidthOffset;
+        _bitmapConverter.MaxWidth = FontSettingsModel.AsciiSize;
+        _bitmapConverter.WidthOffset = WidthOffset;
 
         if (FontSettingsModel.InvertInRedactor == true) SetAsciiText(_bitmapConverter.CreateInvertAscii);
         else SetAsciiText(_bitmapConverter.CreateAscii);
@@ -313,16 +286,6 @@ public class AsciiRenderModel : INotifyPropertyChanged
         }
     }
 
-    private void OpenAsciiSettingsWindow(object o)
-    {
-        var asciiSettings = new AsciiSettings(AsciiSettingsModel);
-        if (asciiSettings.ShowDialog() == true)
-        {
-            AsciiSettingsModel = asciiSettings.AsciiSettingsModel;
-            if (!_isVideoPlaying) Task.Run(OpenBitmap);
-        }
-    }
-
     private async void SaveAsciiAsync(object o)
     {
         if (FileName == null) return;
@@ -354,9 +317,9 @@ public class AsciiRenderModel : INotifyPropertyChanged
         if (FontSettingsModel.InvertInSavedFile == true) createAscii = _bitmapConverter.CreateInvertAscii;
         else createAscii = _bitmapConverter.CreateAscii;
         
-        _bitmapConverter.WidthOffset = 1;
+        _bitmapConverter.WidthOffset = WidthOffsetOutput;
         Bitmap bitmap = _bitmapConverter.ConvertToBimap(createAscii.Invoke());
-        _bitmapConverter.WidthOffset = 2;
+        _bitmapConverter.WidthOffset = WidthOffset;
         bitmap.Save(path);
     }
 

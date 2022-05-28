@@ -11,6 +11,7 @@ public partial class FontSettings : Window
     {
         InitializeComponent();
         FontSettingsModel = fontSettingsModel;
+        AsciiSize.Text = fontSettingsModel.AsciiSize.ToString();
         FontSize.Text = fontSettingsModel.FontSize.ToString();
         InvertInRedactor.IsChecked = fontSettingsModel.InvertInRedactor;
         InvertInSavedFile.IsChecked = fontSettingsModel.InvertInSavedFile;
@@ -18,7 +19,20 @@ public partial class FontSettings : Window
 
     private void AcceptSettings()
     {
-        bool success  = int.TryParse(FontSize.Text, out int fontSize);
+        bool success  = int.TryParse(AsciiSize.Text, out int asciiSize);
+        if (!success)
+        {
+            asciiSize = 250;
+        }
+        if (asciiSize < 1)
+        {
+            asciiSize = 1;
+        }
+        else if (asciiSize > 500)
+        {
+            asciiSize = 500;
+        }
+        success  = int.TryParse(FontSize.Text, out int fontSize);
         if (!success)
         {
             fontSize = 5;
@@ -32,6 +46,7 @@ public partial class FontSettings : Window
             fontSize = 50;
         }
         FontSettingsModel.FontSize = fontSize;
+        FontSettingsModel.AsciiSize = asciiSize;
         FontSettingsModel.InvertInRedactor = InvertInRedactor.IsChecked;
         FontSettingsModel.InvertInSavedFile = InvertInSavedFile.IsChecked;
     }

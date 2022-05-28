@@ -85,14 +85,10 @@
             <Generator>MSBuild:Compile</Generator>
             <SubType>Designer</SubType>
         </ApplicationDefinition>
-        <Compile Include="AsciiSettings.xaml.cs">
-          <DependentUpon>AsciiSettings.xaml</DependentUpon>
-        </Compile>
         <Compile Include="Command.cs" />
         <Compile Include="FontSettings.xaml.cs">
           <DependentUpon>FontSettings.xaml</DependentUpon>
         </Compile>
-        <Compile Include="Models\AsciiSettingsModel.cs" />
         <Compile Include="Models\FontSettingsModel.cs" />
         <Compile Include="ViewModels\AsciiRenderModel.cs" />
         <Compile Include="ViewModels\BitmapConverter.cs" />
@@ -108,7 +104,6 @@
             <DependentUpon>AsciiRender.xaml</DependentUpon>
             <SubType>Code</SubType>
         </Compile>
-        <Page Include="AsciiSettings.xaml" />
         <Page Include="FontSettings.xaml" />
     </ItemGroup>
     <ItemGroup>

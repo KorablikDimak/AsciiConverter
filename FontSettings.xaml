@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:AsciiConverter"
         mc:Ignorable="d"
-        Title="FontSettings" Height="240" Width="400">
+        Title="FontSettings" Height="280" Width="400" ResizeMode="NoResize">
     
     <Window.Resources>
         <Style x:Key="ButtonStyle" TargetType="Button">
@@ -40,8 +40,16 @@
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0 10 0 0">
+                <Label Foreground="#C0C0C6" Height="30" FontSize="14" Content="AsciiSize:"></Label>
+                <TextBox x:Name="AsciiSize" BorderBrush="#2C2C2C" Background="#383838" Foreground="#C0C0C6" 
+                         Height="30" Width="30" FontSize="14" 
+                         Text="250" 
+                         VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></TextBox>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0 10 0 0">
                 <Label Foreground="#C0C0C6" Height="30" FontSize="14" Content="Font size:"></Label>
                 <TextBox x:Name="FontSize" BorderBrush="#2C2C2C" Background="#383838" Foreground="#C0C0C6" 
                          Height="30" Width="30" FontSize="14" 
@@ -49,14 +57,14 @@
                          VerticalContentAlignment="Center" HorizontalContentAlignment="Center"></TextBox>
             </StackPanel>
             <CheckBox x:Name="InvertInRedactor" Margin="0 10 0 0" 
-                      IsChecked="True" Grid.Row="1" 
+                      IsChecked="True" Grid.Row="2" 
                       BorderBrush="#2C2C2C" Background="#383838" Foreground="#C0C0C6" 
                       Height="30" FontSize="14" Content="invert color in redactor"></CheckBox>
             <CheckBox x:Name="InvertInSavedFile" Margin="0 10 0 0" 
-                      IsChecked="False" Grid.Row="2" 
+                      IsChecked="False" Grid.Row="3" 
                       BorderBrush="#2C2C2C" Background="#383838" Foreground="#C0C0C6" 
                       Height="30" FontSize="14" Content="invert color in saved file"></CheckBox>
-            <StackPanel Grid.Row="3" Margin="0 10 0 0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <StackPanel Grid.Row="4" Margin="0 10 0 0" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Click="Cancel" Style="{StaticResource ButtonStyle}" Foreground="#C0C0C6" Height="30" Width="100" Margin="0 0 15 0">Cancel</Button>
                 <Button Click="Accept" Style="{StaticResource ButtonStyle}" Foreground="#C0C0C6" Height="30" Width="100" >Accept</Button>
             </StackPanel>

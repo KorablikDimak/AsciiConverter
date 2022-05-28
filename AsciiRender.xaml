@@ -108,7 +108,6 @@
             </MenuItem>
             <MenuItem Style="{StaticResource MenuItemStyle}" Header="Settings">
                 <MenuItem Style="{StaticResource MenuItemStyle}" Header="Font" Command="{Binding ChangeFontSettings}"></MenuItem>
-                <MenuItem Style="{StaticResource MenuItemStyle}" Header="Ascii" Command="{Binding AsciiSettings}"></MenuItem>
             </MenuItem>
         </Menu>
         <Grid Grid.Row="1">
@@ -145,7 +144,6 @@
                 <ColumnDefinition Width="*"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
                 <ColumnDefinition Width="Auto"></ColumnDefinition>
-                <ColumnDefinition Width="Auto"></ColumnDefinition>
             </Grid.ColumnDefinitions>
             <Label Grid.Column="0" Style="{StaticResource FooterLabelStyle}"
                    Content="{Binding ImageSize, UpdateSourceTrigger=PropertyChanged}"></Label>
@@ -154,8 +152,6 @@
                    Content="{Binding AsciiSize, UpdateSourceTrigger=PropertyChanged}"></Label>
             <Label Grid.Column="3" Style="{StaticResource FooterLabelStyle}"
                    Content="{Binding FontSize, UpdateSourceTrigger=PropertyChanged}"></Label>
-            <Label Grid.Column="4" Style="{StaticResource FooterLabelStyle}"
-                   Content="{Binding WidthOffset, UpdateSourceTrigger=PropertyChanged}"></Label>
         </Grid>
     </Grid>
 </Window>
