@@ -14,7 +14,7 @@ No launch conditions are required. Just download the app and run it. Do not forg
 You can also save the text converted to asci back to the image and save it with a rather unusual effect.
 
 ## Download app
-You can download a checked application for PC by the link [AsciiConverter](https://disk.yandex.ru/d/-ES7ijpxuNG8Zg)
+You can download a checked application for PC by the link [AsciiConverter](https://disk.yandex.ru/d/ZXK9zX-djvvdsQ)
 
 ### New (27.05.2022)
 Added the ability to convert video to ascii. Significantly optimized conversion of images (or video frames) to ascii. You can pause/resume the video. All tasks run asynchronously on separate threads and are controlled through the `CancellationTokenSource`.
