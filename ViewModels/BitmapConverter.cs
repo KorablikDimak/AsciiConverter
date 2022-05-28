@@ -33,13 +33,13 @@ public class BitmapConverter
         }
     }
 
+    private Bitmap _scaledBitmap;
     private Bitmap _bitmap;
     public Bitmap Bitmap
     {
         get => _bitmap;
         set
         {
-            _asciiIndexes = null;
             _bitmap = value;
         }
     }
@@ -47,33 +47,17 @@ public class BitmapConverter
     // not use Reverse() for optimization
     private readonly char[] _symbols = {'@', '$', '&', '%', '#', '*', '+', '-', ';', ':', '_', ',', '.', ' '};
     private readonly char[] _invertSymbols = {' ', '.', ',', '_', ':', ';', '-', '+', '*', '#', '%', '&', '$', '@'};
-    private char[][] _ascii;
-    private int[][] _asciiIndexes;
 
     public char[][] CreateAscii()
     {
-        if (_asciiIndexes != null) 
-        {
-            ConvertToAscii(_symbols);
-            return _ascii;
-        }
         ConvertBitmapToMonochrome();
-        CreateAsciiIndexes();
-        ConvertToAscii(_symbols);
-        return _ascii;
+        return CreateAscii(_symbols);
     }
 
     public char[][] CreateInvertAscii()
     {
-        if (_asciiIndexes != null)
-        {
-            ConvertToAscii(_invertSymbols);
-            return _ascii;
-        }
         ConvertBitmapToMonochrome();
-        CreateAsciiIndexes(); 
-        ConvertToAscii(_invertSymbols); 
-        return _ascii;
+        return CreateAscii(_invertSymbols); 
     }
         
     private void ScaleBitmap()
@@ -81,14 +65,14 @@ public class BitmapConverter
         int newHeight = (int) (Bitmap.Height / WidthOffset * MaxWidth / Bitmap.Width);
         if (Bitmap.Width > MaxWidth || Bitmap.Height > newHeight)
         {
-            Bitmap = new Bitmap(Bitmap, new Size(MaxWidth, newHeight));
+            _scaledBitmap = new Bitmap(Bitmap, new Size(MaxWidth, newHeight));
         }
     }
         
     private void ConvertBitmapToMonochrome()
     {
-        var rectangle = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
-        var bitmapData = Bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        var rectangle = new Rectangle(0, 0, _scaledBitmap.Width, _scaledBitmap.Height);
+        var bitmapData = _scaledBitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         IntPtr ptr = bitmapData.Scan0;
             
         int bytes = Math.Abs(bitmapData.Stride) * bitmapData.Height;
@@ -104,48 +88,37 @@ public class BitmapConverter
         }
             
         Marshal.Copy(rgbValues, 0, ptr, bytes);
-        Bitmap.UnlockBits(bitmapData);
+        _scaledBitmap.UnlockBits(bitmapData);
     }
 
-    private void CreateAsciiIndexes()
+    private char[][] CreateAscii(char[] symbols)
     {
-        var rectangle = new Rectangle(0, 0, Bitmap.Width, Bitmap.Height);
-        var bitmapData = Bitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
+        var rectangle = new Rectangle(0, 0, _scaledBitmap.Width, _scaledBitmap.Height);
+        var bitmapData = _scaledBitmap.LockBits(rectangle, ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
         IntPtr ptr = bitmapData.Scan0;
             
         int bytes = Math.Abs(bitmapData.Stride) * bitmapData.Height;
         byte[] rgbValues = new byte[bytes];
         Marshal.Copy(ptr, rgbValues, 0, bytes);
 
-        _asciiIndexes = new int[Bitmap.Height][];
-        _asciiIndexes[0] = new int[Bitmap.Width];
+        char[][] ascii = new char[_scaledBitmap.Height][];
+        ascii[0] = new char[_scaledBitmap.Width];
         for (int counter = 0, x = 0, y = 0; counter < rgbValues.Length; counter += 4, x++)
         {
-            if (x == Bitmap.Width)
+            if (x == _scaledBitmap.Width)
             {
                 x = 0;
                 y++;
-                _asciiIndexes[y] = new int[Bitmap.Width];
+                ascii[y] = new char[_scaledBitmap.Width];
             }
 
-            _asciiIndexes[y][x] = (int)((float)rgbValues[counter] / 255 * (_symbols.Length - 1));
+            ascii[y][x] = symbols[(int)((float)rgbValues[counter] / 255 * (_symbols.Length - 1))];
         }
             
         Marshal.Copy(rgbValues, 0, ptr, bytes);
-        Bitmap.UnlockBits(bitmapData);
-    }
+        _scaledBitmap.UnlockBits(bitmapData);
 
-    private void ConvertToAscii(char[] symbols)
-    {
-        _ascii = new char[Bitmap.Height][];
-        for (int y = 0; y < Bitmap.Height; y++)
-        {
-            _ascii[y] = new char[Bitmap.Width];
-            for (int x = 0; x < Bitmap.Width; x++)
-            {
-                _ascii[y][x] = symbols[_asciiIndexes[y][x]];
-            }
-        }
+        return ascii;
     }
 
     private const int CharToPixelSize = 5;

@@ -206,7 +206,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
         }
     }
     
-    private bool _isVideoPlaying = false;
+    private bool _isVideoPlaying;
 
     private async void OpenVideo(CancellationToken token)
     {
@@ -235,13 +235,13 @@ public class AsciiRenderModel : INotifyPropertyChanged
             if (!capture.Read(image)) return;
 
             _bitmapConverter.Bitmap = OpenCvSharp.Extensions.BitmapConverter.ToBitmap(image);
-            if (AsciiSettingsModel.AsciiSize > 300) AsciiSettingsModel.AsciiSize = 300;
+            if (AsciiSettingsModel.AsciiSize > 360) AsciiSettingsModel.AsciiSize = 360;
             _bitmapConverter.MaxWidth = AsciiSettingsModel.AsciiSize;
             _bitmapConverter.WidthOffset = AsciiSettingsModel.WidthOffset;
 
             if (FontSettingsModel.InvertInRedactor == true)
-                CreateAsciiString(_bitmapConverter.CreateInvertAscii);
-            else CreateAsciiString(_bitmapConverter.CreateAscii);
+                SetAsciiText(_bitmapConverter.CreateInvertAscii);
+            else SetAsciiText(_bitmapConverter.CreateAscii);
 
             int timeEndFrame = DateTime.Now.Second * 1000 + DateTime.Now.Millisecond; // this line does not affect performance
             
@@ -276,11 +276,11 @@ public class AsciiRenderModel : INotifyPropertyChanged
         _bitmapConverter.MaxWidth = AsciiSettingsModel.AsciiSize;
         _bitmapConverter.WidthOffset = AsciiSettingsModel.WidthOffset;
 
-        if (FontSettingsModel.InvertInRedactor == true) CreateAsciiString(_bitmapConverter.CreateInvertAscii);
-        else CreateAsciiString(_bitmapConverter.CreateAscii);
+        if (FontSettingsModel.InvertInRedactor == true) SetAsciiText(_bitmapConverter.CreateInvertAscii);
+        else SetAsciiText(_bitmapConverter.CreateAscii);
     }
     
-    private void CreateAsciiString(CreateAscii createAscii)
+    private void SetAsciiText(CreateAscii createAscii)
     {
         char[][] ascii = createAscii.Invoke();
         AsciiSize = $"{ascii.Length}symbols x {ascii[0].Length}symbols";
@@ -290,6 +290,17 @@ public class AsciiRenderModel : INotifyPropertyChanged
             asciiText[y] = new string(ascii[y]);
         }
         AsciiText = string.Join("\n", asciiText);
+    }
+    
+    private string GetAsciiText(CreateAscii createAscii)
+    {
+        char[][] ascii = createAscii.Invoke();
+        string[] asciiText = new string[ascii.Length];
+        for (int y = 0; y < ascii.Length; y++)
+        {
+            asciiText[y] = new string(ascii[y]);
+        }
+        return string.Join("\n", asciiText);
     }
 
     private void OpenFontSettingsWindow(object o)
@@ -320,18 +331,21 @@ public class AsciiRenderModel : INotifyPropertyChanged
 
     private async void SaveAsAsciiAsync(object o)
     {
+        StopVideo(null);
         if (AsciiText == null) return;
         var fileDialog = new SaveFileDialog {Filter = "txt file (*.txt)|*.txt|image file (*.png)|*.png"};
         bool? isChosen = fileDialog.ShowDialog();
         if (isChosen != true) return;
         string filePath = fileDialog.FileName;
 
-        if (fileDialog.FilterIndex < 2)
+        if (fileDialog.FilterIndex == 1)
         {
             await SaveTextAsync(filePath);
         }
-
-        SaveImage(filePath);
+        else if (fileDialog.FilterIndex == 2)
+        {
+            SaveImage(filePath);
+        }
     }
 
     private void SaveImage(string path)
@@ -339,21 +353,24 @@ public class AsciiRenderModel : INotifyPropertyChanged
         CreateAscii createAscii;
         if (FontSettingsModel.InvertInSavedFile == true) createAscii = _bitmapConverter.CreateInvertAscii;
         else createAscii = _bitmapConverter.CreateAscii;
-
+        
+        _bitmapConverter.WidthOffset = 1;
         Bitmap bitmap = _bitmapConverter.ConvertToBimap(createAscii.Invoke());
+        _bitmapConverter.WidthOffset = 2;
         bitmap.Save(path);
     }
 
     private async Task SaveTextAsync(string path)
     {
-        if (FontSettingsModel.InvertInSavedFile == true) CreateAsciiString(_bitmapConverter.CreateInvertAscii);
-        else CreateAsciiString(_bitmapConverter.CreateAscii);
+        string text;
+        if (FontSettingsModel.InvertInSavedFile == true) text = GetAsciiText(_bitmapConverter.CreateInvertAscii);
+        else text = GetAsciiText(_bitmapConverter.CreateAscii);
             
-        if (AsciiText == null) return;
+        if (text == null) return;
         try
         {
             using var streamWriter = new StreamWriter(path, false, System.Text.Encoding.UTF8);
-            await streamWriter.WriteAsync(AsciiText);
+            await streamWriter.WriteAsync(text);
         }
         catch (Exception e)
         {
