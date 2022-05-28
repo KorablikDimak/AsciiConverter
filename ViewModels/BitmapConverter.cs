@@ -7,16 +7,13 @@ namespace AsciiConverter.ViewModels;
 
 public class BitmapConverter
 {
-    private float _widthOffset;
-    public float WidthOffset
+    private byte _widthOffset;
+    public byte WidthOffset
     {
         get => _widthOffset;
         set
         {
-            if (value < 0.1f) _widthOffset = 0.1f;
-            else if (value > 10) _widthOffset = 10;
-            else _widthOffset = value;
-
+            _widthOffset = value;
             ScaleBitmap();
         }
     }
@@ -62,7 +59,7 @@ public class BitmapConverter
         
     private void ScaleBitmap()
     {
-        int newHeight = (int) (Bitmap.Height / WidthOffset * MaxWidth / Bitmap.Width);
+        int newHeight = Bitmap.Height / WidthOffset * MaxWidth / Bitmap.Width;
         if (Bitmap.Width > MaxWidth || Bitmap.Height > newHeight)
         {
             _scaledBitmap = new Bitmap(Bitmap, new Size(MaxWidth, newHeight));
