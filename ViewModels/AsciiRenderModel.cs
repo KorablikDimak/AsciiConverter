@@ -123,9 +123,9 @@ public class AsciiRenderModel : INotifyPropertyChanged
     public Command ContinuePlay => _continuePlay ??= new Command(ContinueVideo);
 
     private readonly BitmapConverter _bitmapConverter = new();
-    private delegate char[][] CreateAscii();
+    private delegate string CreateAscii();
 
-    private CancellationTokenSource _cancellationTokenSource = new();
+    private CancellationTokenSource _videoPlayTokenSource = new();
 
     private async void OpenFileDialog(object o)
     {
@@ -137,13 +137,11 @@ public class AsciiRenderModel : INotifyPropertyChanged
         bool? isChosen = fileDialog.ShowDialog();
         if (isChosen != true) return;
         
-        _cancellationTokenSource.Cancel();
-        await Task.Delay(1000);
+        _videoPlayTokenSource.Cancel();
+        await Task.Delay(100);
         _isVideoPlaying = false;
-        _cancellationTokenSource.Dispose();
-        
-        _cancellationTokenSource = new CancellationTokenSource();
-        CancellationToken token = _cancellationTokenSource.Token;
+        _videoPlayTokenSource.Dispose();
+        _videoPlayTokenSource = new CancellationTokenSource();
         
         FilePath = fileDialog.FileName;
         FileName = fileDialog.SafeFileName;
@@ -154,10 +152,10 @@ public class AsciiRenderModel : INotifyPropertyChanged
             switch (extension)
             {
                 case ".mp4":
-                    Task.Run(() => OpenVideo(token), token);
+                    Task.Run(OpenVideo);
                     break;
                 case ".avi":
-                    Task.Run(() => OpenVideo(token), token);
+                    Task.Run(OpenVideo);
                     break;
                 case ".bmp":
                     Task.Run(OpenBitmap);
@@ -181,17 +179,17 @@ public class AsciiRenderModel : INotifyPropertyChanged
     
     private bool _isVideoPlaying;
 
-    private async void OpenVideo(CancellationToken token)
+    private async void OpenVideo()
     {
         var capture = new VideoCapture(FilePath);
         _isVideoPlaying = true;
         var image = new Mat();
-        int frameTime = 1000 / (int ) capture.Fps; // in milliseconds (for example 33ms when original fps is 30)
+        int frameTime = 1000 / (int) capture.Fps; // in milliseconds (for example 33ms when original fps is 30)
         ImageSize = $"{capture.FrameHeight}px x {capture.FrameWidth}px";
 
         while (capture.IsOpened())
         {
-            if (token.IsCancellationRequested) return;
+            if (_videoPlayTokenSource.Token.IsCancellationRequested) return;
             if (_stopTokenSource.Token.IsCancellationRequested)
             {
                 try
@@ -229,7 +227,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private async void StopVideo(object o)
     {
         _stopTokenSource.Cancel();
-        await Task.Delay(1000);
+        await Task.Delay(100);
         _stopTokenSource.Dispose();
         _stopTokenSource = new CancellationTokenSource();
     }
@@ -237,7 +235,7 @@ public class AsciiRenderModel : INotifyPropertyChanged
     private async void ContinueVideo(object o)
     {
         _continueTokenSource.Cancel();
-        await Task.Delay(1000);
+        await Task.Delay(100);
         _continueTokenSource.Dispose();
         _continueTokenSource = new CancellationTokenSource();
     }
@@ -255,25 +253,13 @@ public class AsciiRenderModel : INotifyPropertyChanged
     
     private void SetAsciiText(CreateAscii createAscii)
     {
-        char[][] ascii = createAscii.Invoke();
-        AsciiSize = $"{ascii.Length}symbols x {ascii[0].Length}symbols";
-        string[] asciiText = new string[ascii.Length];
-        for (int y = 0; y < ascii.Length; y++)
-        {
-            asciiText[y] = new string(ascii[y]);
-        }
-        AsciiText = string.Join("\n", asciiText);
+        AsciiText = createAscii.Invoke();
+        AsciiSize = $"{_bitmapConverter.ScaledBitmap.Height}symbols x {_bitmapConverter.ScaledBitmap.Width}symbols";
     }
     
     private string GetAsciiText(CreateAscii createAscii)
     {
-        char[][] ascii = createAscii.Invoke();
-        string[] asciiText = new string[ascii.Length];
-        for (int y = 0; y < ascii.Length; y++)
-        {
-            asciiText[y] = new string(ascii[y]);
-        }
-        return string.Join("\n", asciiText);
+        return createAscii.Invoke();
     }
 
     private void OpenFontSettingsWindow(object o)
